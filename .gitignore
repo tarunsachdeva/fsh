@@ -1,0 +1,15 @@
+.DS_Store
+
+# node
+node_modules/
+
+# logs
+*.log
+.fsh_history
+
+# system / editor
+.vscode/
+.idea/
+
+# temporary installer backups
+ghostty.config.bak*

@@ -1,0 +1,30 @@
+{
+  "name": "fsh",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A natural-language shell wrapper powered by libfx",
+  "type": "module",
+  "bin": {
+    "fsh": "bin/fsh.mjs"
+  },
+  "scripts": {
+    "start": "node bin/fsh.mjs",
+    "test": "node --test && node --check bin/fsh.mjs && bash -n scripts/install.sh && bash -n scripts/uninstall.sh"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "libfx": "0.0.14"
+  },
+  "keywords": [
+    "fx",
+    "libfx",
+    "shell",
+    "nlp",
+    "terminal",
+    "ai"
+  ],
+  "author": "Tarun Sachdeva <tarunsachdeva>",
+  "license": "MIT"
+}
