@@ -10,9 +10,10 @@ Requires Node.js 20+ and an [AI Gateway key](https://fx.sh/docs/lib/quick-start.
 cd ~/code/fsh
 npm install
 ./scripts/install.sh
-export AI_GATEWAY_API_KEY=your-key
 fsh
 ```
+
+Put `AI_GATEWAY_API_KEY=your-key` in a `.env` file in the **fsh checkout**, or export it in your shell. fsh loads the checkout's `.env` even when started from another directory. An exported value takes precedence over `.env`. The `.env` file is gitignored.
 
 The installer links `~/.local/bin/fsh` to this checkout so Node can resolve its `libfx` dependency. Add that directory to `PATH` if necessary. Set `FSH_INSTALL_ALIAS=1` to add `fsh` and `fshr` aliases to an existing `~/.zshrc`, or `FSH_INSTALL_GHOSTTY=1` for a Ghostty command override. Neither integration is required.
 
@@ -24,7 +25,7 @@ Commands: `/help`, `/quit`, `/auto on|off`, `/noconfirm on|off`, `/show on|off`.
 
 | Variable | Purpose |
 | --- | --- |
-| `AI_GATEWAY_API_KEY` | AI Gateway credential required for translation |
+| `AI_GATEWAY_API_KEY` | AI Gateway credential required for translation (shell or checkout `.env`) |
 | `FSH_MODEL` | Optional libfx model ID |
 | `FSH_CONTINUOUS_SESSION=0` | Start a new in-memory session for each translation |
 | `FSH_ASSUME_YES=1` | Skip confirmation of translated commands |

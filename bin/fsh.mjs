@@ -4,8 +4,9 @@ import { spawnSync } from "node:child_process";
 import { homedir } from "node:os";
 import readline from "node:readline";
 import { createFxAgent, memory } from "libfx";
+import { loadFshEnv } from "./env.mjs";
 
-const env = process.env;
+const env = loadFshEnv();
 let cwd = process.cwd();
 let assumeYes = env.FSH_ASSUME_YES === "1";
 let autoConfirmSafe = env.FSH_AUTO_CONFIRM_SAFE !== "0";

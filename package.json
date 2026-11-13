@@ -9,12 +9,13 @@
   },
   "scripts": {
     "start": "node bin/fsh.mjs",
-    "test": "node --test && node --check bin/fsh.mjs && bash -n scripts/install.sh && bash -n scripts/uninstall.sh"
+    "test": "node --test && node --check bin/fsh.mjs && node --check bin/env.mjs && bash -n scripts/install.sh && bash -n scripts/uninstall.sh"
   },
   "engines": {
     "node": ">=20"
   },
   "dependencies": {
+    "dotenv": "^18.0.10",
     "libfx": "0.0.14"
   },
   "keywords": [

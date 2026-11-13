@@ -1,9 +1,24 @@
 import { spawn, spawnSync } from "node:child_process";
-import { lstat, mkdtemp, rm } from "node:fs/promises";
+import { lstat, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { loadFshEnv } from "../bin/env.mjs";
+
+test("checkout environment file supplies a key without overriding an exported key", async () => {
+  const dir = await mkdtemp(join(tmpdir(), "fsh-env-"));
+  try {
+    const file = join(dir, ".env");
+    await writeFile(file, 'AI_GATEWAY_API_KEY="from-file"\nFSH_MODEL=anthropic/claude-haiku-5.5\n');
+    const values = loadFshEnv(file, { AI_GATEWAY_API_KEY: "from-shell" });
+    assert.equal(values.AI_GATEWAY_API_KEY, "from-shell");
+    assert.equal(values.FSH_MODEL, "anthropic/claude-haiku-5.5");
+    assert.equal(loadFshEnv(file, {}).AI_GATEWAY_API_KEY, "from-file");
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});
 
 test("raw commands run without credentials and cd persists", async () => {
   const home = await mkdtemp(join(tmpdir(), "fsh-test-"));
