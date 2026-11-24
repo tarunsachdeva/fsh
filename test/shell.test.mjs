@@ -62,6 +62,8 @@ test("checkout environment file supplies a key without overriding an exported ke
     assert.equal(values.FSH_MODEL, "anthropic/claude-haiku-5.5");
     assert.equal(values.FSH_SKIP_PERMISSIONS, "1");
     assert.equal(loadFshEnv(file, {}).AI_GATEWAY_API_KEY, "from-file");
+    assert.equal(loadFshEnv(file, { AI_GATEWAY_API_KEY: "" }).AI_GATEWAY_API_KEY, "");
+    assert.deepEqual(loadFshEnv(join(dir, "missing.env"), { A: "1" }), { A: "1" });
   } finally {
     await rm(dir, { recursive: true, force: true });
   }

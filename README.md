@@ -4,7 +4,7 @@ A natural-language shell based on [libfx](https://fx.sh/docs/lib). A fresh `fsh`
 
 ## Install
 
-Requires Node.js 20+ and an [AI Gateway key](https://fx.sh/docs/lib/quick-start.md#connect-a-model).
+Requires Node.js 20.12+ and an [AI Gateway key](https://fx.sh/docs/lib/quick-start.md#connect-a-model).
 
 ```sh
 cd ~/code/fsh
