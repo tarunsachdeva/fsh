@@ -9,7 +9,7 @@
   },
   "scripts": {
     "start": "node bin/fsh.mjs",
-    "test": "node --test && node --check bin/fsh.mjs && node --check bin/env.mjs && bash -n scripts/install.sh && bash -n scripts/uninstall.sh"
+    "test": "node --test && node --check bin/fsh.mjs && node --check bin/env.mjs && node --check bin/completion.mjs && bash -n scripts/install.sh && bash -n scripts/uninstall.sh"
   },
   "engines": {
     "node": ">=20"

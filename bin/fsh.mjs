@@ -4,11 +4,12 @@ import { spawnSync } from "node:child_process";
 import { homedir } from "node:os";
 import readline from "node:readline";
 import { createFxAgent, memory } from "libfx";
+import { completePath } from "./completion.mjs";
 import { loadFshEnv } from "./env.mjs";
 
-const env = loadFshEnv();
+let env = loadFshEnv();
 let cwd = process.cwd();
-let assumeYes = env.FSH_ASSUME_YES === "1";
+let skipPermissions = env.FSH_SKIP_PERMISSIONS === "1";
 let autoConfirmSafe = env.FSH_AUTO_CONFIRM_SAFE !== "0";
 let showTranslation = env.FSH_SHOW_TRANSLATION !== "0";
 let agent;
@@ -30,6 +31,7 @@ function commandFrom(text) {
 async function translate(request) {
   agent ??= createFxAgent({
     name: "fsh",
+    ...(env.AI_GATEWAY_API_KEY ? { apiKey: env.AI_GATEWAY_API_KEY } : {}),
     ...(env.FSH_MODEL ? { model: env.FSH_MODEL } : {}),
     instructions,
     tools: [],
@@ -77,17 +79,24 @@ function help() {
   process.stdout.write(`fsh commands:
   /help                Show this help
   /quit or /exit       Exit
+  rl or /rl            Restart: clear translation context and reload .env
   // <command>         Run a command without translation
   /auto on|off         Toggle yes default for simple read-only commands
   /noconfirm on|off    Toggle confirmation prompts
   /show on|off         Toggle showing the executed command
 
 Other input is translated by libfx. FSH_AUTO_RAW=1 runs it directly.
+Press Tab to complete file and directory paths from the current directory.
 `);
 }
 
 async function main() {
-  const rl = readline.createInterface({ input: process.stdin, output: process.stdout, terminal: process.stdin.isTTY });
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+    terminal: process.stdin.isTTY,
+    completer: (line) => completePath(line, cwd),
+  });
   const lines = [];
   const waiters = [];
   let closed = false;
@@ -104,11 +113,22 @@ async function main() {
   process.stdout.write("fsh: powered by libfx\nType /help for commands.\n");
   try {
     while (true) {
-      if (process.stdin.isTTY) rl.setPrompt(env.FSH_PROMPT ?? "fx> "), rl.prompt();
+      if (process.stdin.isTTY) rl.setPrompt(env.FSH_PROMPT ?? "fsh> "), rl.prompt();
       const input = await nextLine();
       if (input === undefined || input === "/quit" || input === "/exit" || input === "quit" || input === "exit") break;
       if (!input.trim()) continue;
       if (input === "/help") { help(); continue; }
+      if (input === "rl" || input === "/rl") {
+        await agent?.close();
+        agent = undefined;
+        session = undefined;
+        env = loadFshEnv();
+        skipPermissions = env.FSH_SKIP_PERMISSIONS === "1";
+        autoConfirmSafe = env.FSH_AUTO_CONFIRM_SAFE !== "0";
+        showTranslation = env.FSH_SHOW_TRANSLATION !== "0";
+        process.stdout.write("fsh restarted (fresh session and settings)\n");
+        continue;
+      }
       if (input.trim() === "//") { process.stdout.write("Usage: // <command>\n"); continue; }
       if (input === "/auto on" || input === "/auto off") {
         autoConfirmSafe = input.endsWith("on");
@@ -116,8 +136,8 @@ async function main() {
         continue;
       }
       if (input === "/noconfirm on" || input === "/noconfirm off") {
-        assumeYes = input.endsWith("on");
-        process.stdout.write(`Promptless mode: ${assumeYes ? "on" : "off"}\n`);
+        skipPermissions = input.endsWith("on");
+        process.stdout.write(`Promptless mode: ${skipPermissions ? "on" : "off"}\n`);
         continue;
       }
       if (input === "/show on" || input === "/show off") {
@@ -131,8 +151,9 @@ async function main() {
       }
 
       try {
+        process.stdout.write("Interpreting...\n");
         const command = await translate(input);
-        if (!assumeYes) {
+        if (!skipPermissions) {
           const yesDefault = safeDefault(command);
           process.stdout.write(`Run: ${command}${yesDefault ? " [Y/n] " : " [y/N] "}`);
           const answer = (await nextLine())?.trim().toLowerCase();

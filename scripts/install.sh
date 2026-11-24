@@ -6,7 +6,7 @@ TARGET_DIR="${FSH_TARGET_DIR:-$HOME/.local/bin}"
 INSTALL_ALIAS="${FSH_INSTALL_ALIAS:-0}"
 INSTALL_GHOSTTY="${FSH_INSTALL_GHOSTTY:-0}"
 GHOSTTY_CONFIG="${FSH_GHOSTTY_CONFIG:-$HOME/.config/ghostty/config}"
-FSH_ASSUME_YES_DEFAULT="${FSH_ASSUME_YES_DEFAULT:-0}"
+FSH_SKIP_PERMISSIONS_DEFAULT="${FSH_SKIP_PERMISSIONS_DEFAULT:-0}"
 
 mkdir -p "$TARGET_DIR"
 
@@ -21,8 +21,8 @@ if [ "$INSTALL_ALIAS" = "1" ]; then
       {
         echo
         echo "# fsh alias"
-        echo "alias fsh='env FSH_ASSUME_YES=$FSH_ASSUME_YES_DEFAULT $TARGET_DIR/fsh'"
-        echo "alias fshr='env FSH_ASSUME_YES=$FSH_ASSUME_YES_DEFAULT FSH_AUTO_RAW=1 $TARGET_DIR/fsh'"
+        echo "alias fsh='env FSH_SKIP_PERMISSIONS=$FSH_SKIP_PERMISSIONS_DEFAULT $TARGET_DIR/fsh'"
+        echo "alias fshr='env FSH_SKIP_PERMISSIONS=$FSH_SKIP_PERMISSIONS_DEFAULT FSH_AUTO_RAW=1 $TARGET_DIR/fsh'"
       } >> "$HOME/.zshrc"
       echo "Added aliases to $HOME/.zshrc"
     else
@@ -39,7 +39,7 @@ if [ "$INSTALL_GHOSTTY" = "1" ]; then
     BACKUP="$GHOSTTY_CONFIG.bak.fsh.$(date +%Y%m%d-%H%M%S)"
     cp "$GHOSTTY_CONFIG" "$BACKUP"
     tmp=$(mktemp)
-    command_line="command = env FSH_ASSUME_YES=$FSH_ASSUME_YES_DEFAULT $TARGET_DIR/fsh"
+    command_line="command = env FSH_SKIP_PERMISSIONS=$FSH_SKIP_PERMISSIONS_DEFAULT $TARGET_DIR/fsh"
 
     replaced="0"
     while IFS= read -r line; do
@@ -59,7 +59,7 @@ if [ "$INSTALL_GHOSTTY" = "1" ]; then
     echo "Updated Ghostty config. Backup: $BACKUP"
   else
     mkdir -p "$(dirname "$GHOSTTY_CONFIG")"
-    echo "command = env FSH_ASSUME_YES=$FSH_ASSUME_YES_DEFAULT $TARGET_DIR/fsh" > "$GHOSTTY_CONFIG"
+    echo "command = env FSH_SKIP_PERMISSIONS=$FSH_SKIP_PERMISSIONS_DEFAULT $TARGET_DIR/fsh" > "$GHOSTTY_CONFIG"
     echo "Created Ghostty config: $GHOSTTY_CONFIG"
   fi
 fi
