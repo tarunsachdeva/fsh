@@ -109,7 +109,7 @@ async function main() {
       if (input === undefined || input === "/quit" || input === "/exit" || input === "quit" || input === "exit") break;
       if (!input.trim()) continue;
       if (input === "/help") { help(); continue; }
-      if (input === "//") { process.stdout.write("Usage: // <command>\n"); continue; }
+      if (input.trim() === "//") { process.stdout.write("Usage: // <command>\n"); continue; }
       if (input === "/auto on" || input === "/auto off") {
         autoConfirmSafe = input.endsWith("on");
         process.stdout.write(`Auto-confirm safe commands: ${autoConfirmSafe ? "on" : "off"}\n`);
@@ -125,8 +125,8 @@ async function main() {
         process.stdout.write(`Show translated command: ${showTranslation ? "on" : "off"}\n`);
         continue;
       }
-      if (input.startsWith("// ") || env.FSH_AUTO_RAW === "1") {
-        execute(input.startsWith("// ") ? input.slice(3) : input);
+      if (input.startsWith("//") || env.FSH_AUTO_RAW === "1") {
+        execute(input.startsWith("//") ? input.slice(2).trimStart() : input);
         continue;
       }
 

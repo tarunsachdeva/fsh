@@ -31,13 +31,14 @@ test("raw commands run without credentials and cd persists", async () => {
     let stderr = "";
     child.stdout.on("data", (chunk) => { stdout += chunk; });
     child.stderr.on("data", (chunk) => { stderr += chunk; });
-    child.stdin.end(`// cd ${home}\n// pwd\n/quit\n`);
+    child.stdin.end(`// cd ${home}\n// pwd\n//echo no-space-raw\n/quit\n`);
     const code = await new Promise((resolve, reject) => {
       child.on("error", reject);
       child.on("close", resolve);
     });
     assert.equal(code, 0, stderr);
     assert.ok(stdout.includes(`${home}\n`), stdout);
+    assert.ok(stdout.includes("no-space-raw\n"), stdout);
     assert.equal(stderr, "");
   } finally {
     await rm(home, { recursive: true, force: true });
