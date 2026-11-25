@@ -14,10 +14,14 @@ let autoConfirmSafe = env.FSH_AUTO_CONFIRM_SAFE !== "0";
 let showTranslation = env.FSH_SHOW_TRANSLATION !== "0";
 let agent;
 let session;
+let lastRun;
 
 const instructions = `You translate natural language into exactly one bash command.
 Return only the command, with no markdown, comments, explanations, or extra lines.
 Use the supplied working directory as context. Prefer the safest sensible command.
+A name is not always a local path. Names like owner/repo or *.git usually mean a git repository:
+match them against local git remotes (for example: grep -l 'NAME' */.git/config) or use gh repo view.
+If the previous command failed, do not repeat it; try a different approach.
 Never output exit, quit, return, or logout.`;
 
 function commandFrom(text) {
@@ -39,7 +43,8 @@ async function translate(request) {
     ...(env.FSH_DEBUG === "1" ? { onEvent: (event) => process.stderr.write(`[fx] ${event.type}\n`) } : {}),
   });
   if (!session || env.FSH_CONTINUOUS_SESSION === "0") session = agent.session();
-  const turn = session.prompt(`Working directory: ${cwd}\nRequest: ${request}`);
+  const previous = lastRun ? `Previous command: ${lastRun.command}\nExit status: ${lastRun.status}\n` : "";
+  const turn = session.prompt(`${previous}Working directory: ${cwd}\nRequest: ${request}`);
   let text = "";
   for await (const event of turn) {
     if (event.type === "text_delta") text += event.delta;
@@ -65,12 +70,15 @@ function execute(command) {
     try {
       process.chdir(cd[1]?.replace(/^~/, homedir()) ?? homedir());
       cwd = process.cwd();
+      lastRun = { command, status: 0 };
     } catch (error) {
       process.stderr.write(`cd: ${error.message}\n`);
+      lastRun = { command, status: 1 };
     }
     return;
   }
   const result = spawnSync("/bin/bash", ["-c", command], { cwd, stdio: "inherit" });
+  lastRun = { command, status: result.error ? "failed to start" : result.status ?? result.signal };
   if (result.error) process.stderr.write(`${result.error.message}\n`);
   else if (result.status !== 0) process.stderr.write(`Command exited with status ${result.status ?? result.signal}\n`);
 }
@@ -122,6 +130,7 @@ async function main() {
         await agent?.close();
         agent = undefined;
         session = undefined;
+        lastRun = undefined;
         env = loadFshEnv();
         skipPermissions = env.FSH_SKIP_PERMISSIONS === "1";
         autoConfirmSafe = env.FSH_AUTO_CONFIRM_SAFE !== "0";
